@@ -47,7 +47,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-
       - name: Запуск миграций
         env:
           SECRET_KEY: ${{ env.SECRET_KEY }}
@@ -61,7 +60,7 @@ jobs:
           DB_PORT: ${{ env.DB_PORT }}
         run: python manage.py migrate
 
-      - name: Запус тестов
+      - name: Запуск тестов
         env:
           SECRET_KEY: ${{ env.SECRET_KEY }}
           DEBUG: ${{ env.DEBUG }}
@@ -74,10 +73,15 @@ jobs:
           DB_PORT: ${{ env.DB_PORT }}
         run: python manage.py test
 
-      - name: Деплой на сервер
-        uses: appleboy/ssh-action@master
+  deploy:
+    needs: testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Деплой на сервер через SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: except /home/bsekinaev/CI_CD_homework/deploy.exp
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            expect /home/bsekinaev/CI_CD_homeworks/deploy.exp
